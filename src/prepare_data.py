@@ -5,8 +5,9 @@ Steps:
      PlantDoc (github.com/pratikkayal/PlantDoc-Dataset) into the raw dir.
   2. Keep only the classes in data/class_map.csv, renaming folders to class_id.
   3. PlantVillage: start from the dataset's leaf-grouped train/test splits,
-     make the split consistent per physical leaf across all configs, then cap
-     each class at --pv-cap images (seeded, whole leaves at a time).
+     make the split consistent per physical leaf across all configs, cap each
+     class at --pv-cap images (seeded, whole leaves at a time), then move
+     --pv-val-frac of train to a leaf-grouped val split used for tuning.
   4. PlantDoc: pool its train+test, group near-duplicates (pHash Hamming
      distance <= --phash-threshold), and do a stratified, group-aware split into
      field_val / field_test. PlantDoc is never used for training.
@@ -41,7 +42,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 PV_REPO_ID = "mohanty/PlantVillage"
 PV_REVISION = "9e97599868962bd0079b8db4b7f1efa9185fa1e7"  # pinned for reproducibility
-PV_SPLITS = ("train", "test")
+HF_SPLITS = ("train", "test")  # splits published on Hugging Face
+PV_SPLITS = ("train", "val", "test")  # splits we export (val is carved from train)
 PD_GIT_URL = "https://github.com/pratikkayal/PlantDoc-Dataset.git"
 PD_ORIG_SPLITS = ("train", "test")
 FIELD_SPLITS = ("field_val", "field_test")
@@ -60,6 +62,8 @@ def parse_args() -> argparse.Namespace:
                    choices=["color", "segmented", "grayscale"], help="PlantVillage configs to export")
     p.add_argument("--pv-revision", default=PV_REVISION, help="Hugging Face dataset revision")
     p.add_argument("--pv-cap", type=int, default=1500, help="max PlantVillage images per class per config (0 = no cap)")
+    p.add_argument("--pv-val-frac", type=float, default=0.15,
+                   help="fraction of PlantVillage train moved to val (leaf-grouped); used for tuning")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--phash-threshold", type=int, default=6, help="max pHash Hamming distance for near-duplicates")
     p.add_argument("--field-val-frac", type=float, default=0.3, help="fraction of PlantDoc that goes to field_val")
@@ -70,6 +74,8 @@ def parse_args() -> argparse.Namespace:
     a.raw_dir = a.raw_dir or a.data_dir / "raw"
     a.out_dir = a.out_dir or a.data_dir / "processed"
     a.summary = a.summary or a.data_dir / "split_summary.csv"
+    if not 0 <= a.pv_val_frac < 1:
+        p.error("--pv-val-frac must be in [0, 1)")
     if not 0 < a.field_val_frac < 1:
         p.error("--field-val-frac must be between 0 and 1")
     return a
@@ -100,7 +106,7 @@ def load_class_map(path: Path) -> list[dict]:
 def download_plantvillage(raw_dir: Path, configs: list[str], revision: str, skip: bool) -> Path:
     dest = raw_dir / "plantvillage"
     files = ["data.zip", "leaf_grouping/leaf-map.json"]
-    files += [f"splits/{c}_{s}.txt" for c in configs for s in PV_SPLITS]
+    files += [f"splits/{c}_{s}.txt" for c in configs for s in HF_SPLITS]
     if not skip:
         from huggingface_hub import hf_hub_download
 
@@ -192,7 +198,7 @@ def load_plantvillage_records(pv_dir: Path, configs: list[str], classes: list[di
     leaf_map = json.loads((pv_dir / "leaf_grouping" / "leaf-map.json").read_text(encoding="utf-8"))
     records = []
     for config in configs:
-        for split in PV_SPLITS:
+        for split in HF_SPLITS:
             lines = (pv_dir / "splits" / f"{config}_{split}.txt").read_text(encoding="utf-8").splitlines()
             for member in filter(None, (l.strip() for l in lines)):
                 _, _, pv_class, filename = member.split("/", 3)
@@ -250,7 +256,7 @@ def select_capped_groups(records: list[dict], cap: int, seed: int) -> set[tuple[
         train_total = sum(n for (s, _), n in size.items() if s == "train")
         quotas = {"train": round(cap * train_total / total)}
         quotas["test"] = cap - quotas["train"]
-        for split in PV_SPLITS:
+        for split in HF_SPLITS:
             keys = sorted(k for k in groups if k[0] == split)
             random.Random(f"{seed}:{class_id}:{split}").shuffle(keys)
             used = 0
@@ -259,6 +265,28 @@ def select_capped_groups(records: list[dict], cap: int, seed: int) -> set[tuple[
                     selected.add((class_id, k[1]))
                     used += size[k]
     return selected
+
+
+def carve_val_split(records: list[dict], val_frac: float, seed: int) -> None:
+    """Move about val_frac of each class's train images to "val", whole leaves at a time."""
+    sizes: dict[str, dict[str, Counter]] = defaultdict(lambda: defaultdict(Counter))
+    for r in records:
+        if r["split"] == "train":
+            sizes[r["class_id"]][r["group"]][r["config"]] += 1
+    val_groups: set[tuple[str, str]] = set()
+    for class_id in sorted(sizes):
+        size = {g: max(c.values()) for g, c in sizes[class_id].items()}
+        target = round(val_frac * sum(size.values()))
+        keys = sorted(size)
+        random.Random(f"{seed}:{class_id}:val").shuffle(keys)
+        used = 0
+        for g in keys:
+            if used + size[g] <= target:
+                val_groups.add((class_id, g))
+                used += size[g]
+    for r in records:
+        if r["split"] == "train" and (r["class_id"], r["group"]) in val_groups:
+            r["split"] = "val"
 
 
 def export_plantvillage(pv_dir: Path, records: list[dict], out_dir: Path) -> list[dict]:
@@ -424,6 +452,7 @@ def main() -> None:
     make_splits_leaf_consistent(records, ref_config=args.pv_configs[0])
     keep = select_capped_groups(records, args.pv_cap, args.seed)
     records = [r for r in records if (r["class_id"], r["group"]) in keep]
+    carve_val_split(records, args.pv_val_frac, args.seed)
     log(f"PlantVillage: exporting {len(records)} images (cap {args.pv_cap}/class/config)")
     manifest = export_plantvillage(pv_dir, records, args.out_dir)
 
@@ -448,7 +477,7 @@ def main() -> None:
         w.writerows(manifest)
     columns = write_summary(args.summary, classes, manifest, args.pv_configs)
     info = {"pv_repo": PV_REPO_ID, "pv_revision": args.pv_revision, "pv_configs": args.pv_configs,
-            "pv_cap": args.pv_cap, "plantdoc_repo": PD_GIT_URL, "plantdoc_commit": pd_commit,
+            "pv_cap": args.pv_cap, "pv_val_frac": args.pv_val_frac, "plantdoc_repo": PD_GIT_URL, "plantdoc_commit": pd_commit,
             "seed": args.seed, "phash_threshold": args.phash_threshold, "field_val_frac": args.field_val_frac,
             "num_classes": len(classes), "num_images": len(manifest)}
     (args.out_dir / INFO_FILE).write_text(json.dumps(info, indent=2), encoding="utf-8")

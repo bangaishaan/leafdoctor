@@ -28,6 +28,7 @@ These rules apply to all code, scripts, and changes in this repository.
 
 - Train only on PlantVillage.
 - Keep every image of one physical leaf in the same PlantVillage split, across the color and segmented configs. `src/prepare_data.py` enforces this.
+- PlantVillage has `train`, `val` (15% of train, split by leaf) and `test`. Tune hyperparameters on PlantVillage `val`.
 - PlantDoc is the field evaluation set. Never use it for training, in any form. This covers both PlantDoc's own `train` and `test` splits.
 - `src/prepare_data.py` pools PlantDoc and splits it 30/70 into `field_val` and `field_test`, keeping near-duplicates together. `field_val` may be used for model selection and calibration. `field_test` is only for reporting final results.
 
