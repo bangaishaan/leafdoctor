@@ -221,3 +221,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# LeafDoctor data: never commit images or datasets
+data/raw/
+data/processed/
