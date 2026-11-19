@@ -226,3 +226,6 @@ __marimo__/
 data/raw/
 data/processed/
 features/
+leafdoctor_data.zip
+*.zip.partial
+results/runs/**/*.pt

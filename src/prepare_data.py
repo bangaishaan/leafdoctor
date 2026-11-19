@@ -11,7 +11,9 @@ Steps:
   4. PlantDoc: pool its train+test, group near-duplicates (pHash Hamming
      distance <= --phash-threshold), and do a stratified, group-aware split into
      field_val / field_test. PlantDoc is never used for training.
-  5. Write images under data/processed/ and counts to data/split_summary.csv.
+  5. Write images under data/processed/, counts to data/split_summary.csv, and
+     one row per image to data/split_manifest.csv (committed, so the splits are
+     reproducible anywhere).
 
 Example (Colab/Kaggle):
   pip install -r requirements.txt
@@ -58,6 +60,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--raw-dir", type=Path, help="downloads go here (default: <data-dir>/raw)")
     p.add_argument("--out-dir", type=Path, help="processed images (default: <data-dir>/processed)")
     p.add_argument("--summary", type=Path, help="default: <data-dir>/split_summary.csv")
+    p.add_argument("--split-manifest", type=Path, help="default: <data-dir>/split_manifest.csv")
     p.add_argument("--pv-configs", nargs="+", default=["color", "segmented"],
                    choices=["color", "segmented", "grayscale"], help="PlantVillage configs to export")
     p.add_argument("--pv-revision", default=PV_REVISION, help="Hugging Face dataset revision")
@@ -74,6 +77,7 @@ def parse_args() -> argparse.Namespace:
     a.raw_dir = a.raw_dir or a.data_dir / "raw"
     a.out_dir = a.out_dir or a.data_dir / "processed"
     a.summary = a.summary or a.data_dir / "split_summary.csv"
+    a.split_manifest = a.split_manifest or a.data_dir / "split_manifest.csv"
     if not 0 <= a.pv_val_frac < 1:
         p.error("--pv-val-frac must be in [0, 1)")
     if not 0 < a.field_val_frac < 1:
@@ -422,6 +426,21 @@ def prepare_out_dir(out_dir: Path, overwrite: bool) -> None:
     (out_dir / INFO_FILE).write_text(json.dumps({"status": "incomplete"}), encoding="utf-8")
 
 
+def split_name(row: dict) -> str:
+    """pv_train / pv_val / pv_test for PlantVillage, field_val / field_test for PlantDoc."""
+    return row["split"] if row["dataset"] == "plantdoc" else f"pv_{row['split']}"
+
+
+def write_split_manifest(path: Path, manifest: list[dict]) -> None:
+    """One row per image: path relative to the processed dir, class_id, split, source."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(["path", "class_id", "split", "source"])
+        for m in sorted(manifest, key=lambda m: m["path"]):
+            w.writerow([m["path"], m["class_id"], split_name(m), f"{m['dataset']}:{m['source']}"])
+
+
 def write_summary(path: Path, classes: list[dict], manifest: list[dict], configs: list[str]) -> list[str]:
     columns = [f"pv_{c}_{s}" for c in configs for s in PV_SPLITS] + list(FIELD_SPLITS)
     counts = Counter()
@@ -476,6 +495,7 @@ def main() -> None:
         w.writeheader()
         w.writerows(manifest)
     columns = write_summary(args.summary, classes, manifest, args.pv_configs)
+    write_split_manifest(args.split_manifest, manifest)
     info = {"pv_repo": PV_REPO_ID, "pv_revision": args.pv_revision, "pv_configs": args.pv_configs,
             "pv_cap": args.pv_cap, "pv_val_frac": args.pv_val_frac, "plantdoc_repo": PD_GIT_URL, "plantdoc_commit": pd_commit,
             "seed": args.seed, "phash_threshold": args.phash_threshold, "field_val_frac": args.field_val_frac,
@@ -484,7 +504,7 @@ def main() -> None:
 
     totals = Counter(m["split"] if m["dataset"] == "plantdoc" else f"pv_{m['config']}_{m['split']}" for m in manifest)
     log("done: " + ", ".join(f"{c}={totals[c]}" for c in columns))
-    log(f"images: {args.out_dir}\nsummary: {args.summary}")
+    log(f"images: {args.out_dir}\nsummary: {args.summary}\nsplit manifest: {args.split_manifest}")
 
 
 if __name__ == "__main__":
