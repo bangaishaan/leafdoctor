@@ -6,171 +6,171 @@
       "feature_cache": "classical_128px_hsv16_lbp8r1",
       "selected": {
         "C": 10,
-        "gamma": 0.01
+        "gamma": 0.03
       },
       "grid": [
         {
           "C": 1,
           "gamma": 0.003,
-          "pv_val_macro_f1": 0.7749655839928848
+          "pv_val_macro_f1": 0.7713946536298495
         },
         {
           "C": 1,
           "gamma": 0.01,
-          "pv_val_macro_f1": 0.837597868437268
+          "pv_val_macro_f1": 0.846309869055324
         },
         {
           "C": 1,
           "gamma": 0.03,
-          "pv_val_macro_f1": 0.8682625639310602
+          "pv_val_macro_f1": 0.871971873033832
         },
         {
           "C": 1,
           "gamma": 0.1,
-          "pv_val_macro_f1": 0.7727548012390912
+          "pv_val_macro_f1": 0.7903288274373373
         },
         {
           "C": 10,
           "gamma": 0.003,
-          "pv_val_macro_f1": 0.8676975719279169
+          "pv_val_macro_f1": 0.8746513887872079
         },
         {
           "C": 10,
           "gamma": 0.01,
-          "pv_val_macro_f1": 0.890980094576001
+          "pv_val_macro_f1": 0.8964726451025399
         },
         {
           "C": 10,
           "gamma": 0.03,
-          "pv_val_macro_f1": 0.880373358680191
+          "pv_val_macro_f1": 0.900107102154285
         },
         {
           "C": 10,
           "gamma": 0.1,
-          "pv_val_macro_f1": 0.7944001308162852
+          "pv_val_macro_f1": 0.8052763698568758
         },
         {
           "C": 100,
           "gamma": 0.003,
-          "pv_val_macro_f1": 0.8854982103745442
+          "pv_val_macro_f1": 0.8908595491461674
         },
         {
           "C": 100,
           "gamma": 0.01,
-          "pv_val_macro_f1": 0.883405364725765
+          "pv_val_macro_f1": 0.8985820826800255
         },
         {
           "C": 100,
           "gamma": 0.03,
-          "pv_val_macro_f1": 0.881198265294625
+          "pv_val_macro_f1": 0.8994957337678832
         },
         {
           "C": 100,
           "gamma": 0.1,
-          "pv_val_macro_f1": 0.7944001308162852
+          "pv_val_macro_f1": 0.8052763698568758
         }
       ],
-      "fit_seconds": 5.1,
-      "seconds": 109.2,
+      "fit_seconds": 8.4,
+      "seconds": 67.1,
       "pv_val": {
         "n": 3303,
-        "accuracy": 0.9385407205570694,
-        "macro_f1": 0.9363204123343843,
+        "accuracy": 0.9361186799878898,
+        "macro_f1": 0.9337208969237162,
         "per_class_f1": {
-          "apple_scab": 0.9178082191780822,
-          "apple_rust": 0.9375,
-          "apple_healthy": 0.9402173913043478,
-          "blueberry_healthy": 0.9664804469273743,
-          "cherry_healthy": 0.956140350877193,
-          "corn_gray_leaf_spot": 0.9009009009009009,
+          "apple_scab": 0.9241379310344827,
+          "apple_rust": 0.9,
+          "apple_healthy": 0.9222520107238605,
+          "blueberry_healthy": 0.9497206703910615,
+          "cherry_healthy": 0.9557522123893806,
+          "corn_gray_leaf_spot": 0.8828828828828829,
           "corn_common_rust": 1.0,
-          "corn_northern_blight": 0.923728813559322,
-          "grape_black_rot": 0.9142857142857143,
-          "grape_healthy": 0.9484536082474226,
-          "peach_healthy": 0.9761904761904762,
-          "pepper_bacterial_spot": 0.9354838709677419,
-          "pepper_healthy": 0.9252873563218391,
-          "potato_early_blight": 0.9754098360655737,
-          "potato_late_blight": 0.852017937219731,
-          "raspberry_healthy": 0.8771929824561403,
-          "soybean_healthy": 0.9239130434782609,
-          "squash_powdery_mildew": 0.9859154929577465,
-          "strawberry_healthy": 0.9310344827586207,
-          "tomato_bacterial_spot": 0.9196675900277008,
-          "tomato_early_blight": 0.8444444444444444,
-          "tomato_late_blight": 0.9301075268817204,
-          "tomato_leaf_mold": 0.987012987012987,
-          "tomato_septoria": 0.9054441260744985,
-          "tomato_mosaic": 0.9777777777777777,
-          "tomato_ylcv": 0.9366391184573003,
-          "tomato_healthy": 0.9915966386554622
+          "corn_northern_blight": 0.919831223628692,
+          "grape_black_rot": 0.8944099378881988,
+          "grape_healthy": 0.9583333333333334,
+          "peach_healthy": 0.9879518072289156,
+          "pepper_bacterial_spot": 0.946058091286307,
+          "pepper_healthy": 0.9279538904899135,
+          "potato_early_blight": 0.9877551020408163,
+          "potato_late_blight": 0.8493150684931506,
+          "raspberry_healthy": 0.8928571428571429,
+          "soybean_healthy": 0.9247311827956989,
+          "squash_powdery_mildew": 0.9859943977591037,
+          "strawberry_healthy": 0.9122807017543859,
+          "tomato_bacterial_spot": 0.9243697478991597,
+          "tomato_early_blight": 0.864406779661017,
+          "tomato_late_blight": 0.9110512129380054,
+          "tomato_leaf_mold": 0.9649122807017544,
+          "tomato_septoria": 0.9235127478753541,
+          "tomato_mosaic": 0.967032967032967,
+          "tomato_ylcv": 0.9385474860335196,
+          "tomato_healthy": 0.994413407821229
         }
       },
       "pv_test": {
         "n": 5403,
-        "accuracy": 0.9307791967425504,
-        "macro_f1": 0.929531356323543,
+        "accuracy": 0.9272626318711826,
+        "macro_f1": 0.9262194757693086,
         "per_class_f1": {
-          "apple_scab": 0.8861788617886179,
-          "apple_rust": 0.9411764705882353,
-          "apple_healthy": 0.9467680608365019,
-          "blueberry_healthy": 0.9649923896499238,
-          "cherry_healthy": 0.9682539682539683,
-          "corn_gray_leaf_spot": 0.8438818565400844,
-          "corn_common_rust": 0.9977011494252873,
-          "corn_northern_blight": 0.9125295508274232,
-          "grape_black_rot": 0.884393063583815,
-          "grape_healthy": 0.9463414634146341,
-          "peach_healthy": 0.9436619718309859,
-          "pepper_bacterial_spot": 0.9085545722713865,
-          "pepper_healthy": 0.8760907504363001,
-          "potato_early_blight": 0.9698795180722891,
-          "potato_late_blight": 0.88,
-          "raspberry_healthy": 0.8949152542372881,
-          "soybean_healthy": 0.872791519434629,
-          "squash_powdery_mildew": 0.987220447284345,
-          "strawberry_healthy": 0.9419354838709677,
-          "tomato_bacterial_spot": 0.9490968801313628,
-          "tomato_early_blight": 0.8904761904761904,
-          "tomato_late_blight": 0.8918918918918919,
-          "tomato_leaf_mold": 0.962536023054755,
-          "tomato_septoria": 0.9283276450511946,
-          "tomato_mosaic": 0.9696969696969697,
-          "tomato_ylcv": 0.9444444444444444,
-          "tomato_healthy": 0.9936102236421726
+          "apple_scab": 0.8559670781893004,
+          "apple_rust": 0.96,
+          "apple_healthy": 0.9356060606060606,
+          "blueberry_healthy": 0.9575757575757575,
+          "cherry_healthy": 0.944,
+          "corn_gray_leaf_spot": 0.8240343347639485,
+          "corn_common_rust": 0.9976905311778291,
+          "corn_northern_blight": 0.8952380952380953,
+          "grape_black_rot": 0.8888888888888888,
+          "grape_healthy": 0.9313725490196079,
+          "peach_healthy": 0.951048951048951,
+          "pepper_bacterial_spot": 0.9117647058823529,
+          "pepper_healthy": 0.8928571428571429,
+          "potato_early_blight": 0.972972972972973,
+          "potato_late_blight": 0.9052132701421801,
+          "raspberry_healthy": 0.891156462585034,
+          "soybean_healthy": 0.875,
+          "squash_powdery_mildew": 0.9775641025641025,
+          "strawberry_healthy": 0.9281045751633987,
+          "tomato_bacterial_spot": 0.9442622950819672,
+          "tomato_early_blight": 0.8946135831381733,
+          "tomato_late_blight": 0.8814691151919867,
+          "tomato_leaf_mold": 0.9565217391304348,
+          "tomato_septoria": 0.9230769230769231,
+          "tomato_mosaic": 0.9846153846153847,
+          "tomato_ylcv": 0.9385113268608414,
+          "tomato_healthy": 0.9888
         }
       },
       "field_test": {
         "n": 1802,
-        "accuracy": 0.039400665926748055,
-        "macro_f1": 0.021585559864169705,
+        "accuracy": 0.03551609322974473,
+        "macro_f1": 0.011488994306590799,
         "per_class_f1": {
-          "apple_scab": 0.03773584905660377,
+          "apple_scab": 0.0,
           "apple_rust": 0.0,
           "apple_healthy": 0.0,
           "blueberry_healthy": 0.0,
-          "cherry_healthy": 0.042352941176470586,
-          "corn_gray_leaf_spot": 0.15028901734104047,
-          "corn_common_rust": 0.0851063829787234,
-          "corn_northern_blight": 0.06666666666666667,
+          "cherry_healthy": 0.0,
+          "corn_gray_leaf_spot": 0.1111111111111111,
+          "corn_common_rust": 0.023809523809523808,
+          "corn_northern_blight": 0.027972027972027972,
           "grape_black_rot": 0.0,
           "grape_healthy": 0.0,
           "peach_healthy": 0.0,
           "pepper_bacterial_spot": 0.0,
-          "pepper_healthy": 0.024390243902439025,
+          "pepper_healthy": 0.0,
           "potato_early_blight": 0.0,
           "potato_late_blight": 0.0,
           "raspberry_healthy": 0.0,
           "soybean_healthy": 0.0,
-          "squash_powdery_mildew": 0.02127659574468085,
+          "squash_powdery_mildew": 0.021739130434782608,
           "strawberry_healthy": 0.0,
           "tomato_bacterial_spot": 0.0,
           "tomato_early_blight": 0.0,
-          "tomato_late_blight": 0.06779661016949153,
-          "tomato_leaf_mold": 0.030303030303030304,
+          "tomato_late_blight": 0.06198723792160438,
+          "tomato_leaf_mold": 0.0,
           "tomato_septoria": 0.0,
           "tomato_mosaic": 0.0,
-          "tomato_ylcv": 0.05689277899343545,
+          "tomato_ylcv": 0.06358381502890173,
           "tomato_healthy": 0.0
         }
       }
@@ -185,7 +185,7 @@
       "grid": [
         {
           "C": 0.01,
-          "pv_val_macro_f1": 0.9768162763523454
+          "pv_val_macro_f1": 0.9775007920466804
         },
         {
           "C": 0.1,
@@ -196,7 +196,7 @@
           "pv_val_macro_f1": 0.9766571225144497
         }
       ],
-      "seconds": 3080.5,
+      "seconds": 318.5,
       "pv_val": {
         "n": 3303,
         "accuracy": 0.9806236754465637,

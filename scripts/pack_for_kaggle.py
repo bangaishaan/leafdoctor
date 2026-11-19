@@ -36,6 +36,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--split-manifest", type=Path, default=REPO_ROOT / "data" / "split_manifest.csv")
     p.add_argument("--out", type=Path, default=REPO_ROOT / "leafdoctor_data.zip")
     p.add_argument("--overwrite", action="store_true")
+    p.add_argument("--max-entry-len", type=int, default=100,
+                   help="fail if any zip entry path is longer than this (Kaggle rejects entries over 248 bytes)")
     return p.parse_args()
 
 
@@ -53,6 +55,11 @@ def main() -> None:
     if missing:
         sys.exit(f"{len(missing)} files in {args.split_manifest.name} are missing from {args.processed_dir}, "
                  f"e.g. {missing[:3]}; rerun src/prepare_data.py")
+    longest = max(paths, key=lambda p: len(p.encode("utf-8")))
+    if len(longest.encode("utf-8")) > args.max_entry_len:
+        sys.exit(f"zip entry too long ({len(longest.encode('utf-8'))} > {args.max_entry_len} bytes): {longest}; "
+                 "rerun src/prepare_data.py, which writes short hashed file names")
+    print(f"longest entry: {len(longest.encode('utf-8'))} bytes ({longest})")
 
     tmp = args.out.with_suffix(".zip.partial")
     with zipfile.ZipFile(tmp, "w", compression=zipfile.ZIP_STORED, allowZip64=True) as zf:

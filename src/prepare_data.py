@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import random
 import re
@@ -139,8 +140,11 @@ def clone_plantdoc(raw_dir: Path, skip: bool) -> tuple[Path, str]:
     return dest, commit
 
 
-def extract_plantdoc(repo: Path, classes: list[dict], dest: Path) -> Path:
-    """Write the kept classes from git HEAD to dest/<orig_split>/<plantdoc_folder>/ with portable names."""
+def extract_plantdoc(repo: Path, classes: list[dict], dest: Path) -> tuple[Path, dict[Path, str]]:
+    """Write the kept classes from git HEAD to dest/<orig_split>/<plantdoc_folder>/ with portable names.
+
+    Returns the folder and {written file: original file name in the PlantDoc repo}.
+    """
     if dest.exists():
         shutil.rmtree(dest)
     wanted = {(s, c["plantdoc_folder"]) for s in PD_ORIG_SPLITS for c in classes}
@@ -154,6 +158,7 @@ def extract_plantdoc(repo: Path, classes: list[dict], dest: Path) -> Path:
         if kind == b"blob" and len(parts) == 3 and (parts[0], parts[1]) in wanted:
             entries.append((sha, parts))
     used: set[Path] = set()
+    original_names: dict[Path, str] = {}
     proc = subprocess.Popen(["git", "-C", str(repo), "cat-file", "--batch"],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     for sha, (split, folder, name) in entries:
@@ -168,12 +173,13 @@ def extract_plantdoc(repo: Path, classes: list[dict], dest: Path) -> Path:
             k += 1
             target = dest / split / folder / f"{Path(safe).stem}_{k}{Path(safe).suffix}"
         used.add(target)
+        original_names[target] = name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
     proc.stdin.close()
     proc.wait()
     log(f"PlantDoc: extracted {len(entries)} files from git into {dest}")
-    return dest
+    return dest, original_names
 
 
 # --------------------------------------------------------------------------- PlantVillage
@@ -293,7 +299,23 @@ def carve_val_split(records: list[dict], val_frac: float, seed: int) -> None:
             r["split"] = "val"
 
 
-def export_plantvillage(pv_dir: Path, records: list[dict], out_dir: Path) -> list[dict]:
+def short_rel_path(long_rel: Path, used: set[str]) -> Path:
+    """<folders>/<first 12 hex of sha1(long_rel)><original extension>.
+
+    long_rel is the descriptive path the image would otherwise have under the
+    processed dir. Short names keep zip entries far below Kaggle's 248-byte
+    limit; `used` (case-folded, as on Windows/macOS) guards against collisions.
+    """
+    digest = hashlib.sha1(long_rel.as_posix().encode("utf-8")).hexdigest()[:12]
+    rel = long_rel.parent / f"{digest}{long_rel.suffix}"
+    key = rel.as_posix().casefold()
+    if key in used:
+        sys.exit(f"file name collision after shortening: {rel} (from {long_rel})")
+    used.add(key)
+    return rel
+
+
+def export_plantvillage(pv_dir: Path, records: list[dict], out_dir: Path, used: set[str]) -> list[dict]:
     manifest = []
     with zipfile.ZipFile(pv_dir / "data.zip") as zf:
         index = {}
@@ -307,14 +329,14 @@ def export_plantvillage(pv_dir: Path, records: list[dict], out_dir: Path) -> lis
             if src is None:
                 missing += 1
                 continue
-            rel = Path("plantvillage") / r["config"] / r["split"] / r["class_id"] / r["filename"]
+            rel = short_rel_path(Path("plantvillage") / r["config"] / r["split"] / r["class_id"] / r["filename"], used)
             dst = out_dir / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(src) as fsrc, open(dst, "wb") as fdst:
                 shutil.copyfileobj(fsrc, fdst)
             manifest.append({"dataset": "plantvillage", "config": r["config"], "split": r["split"],
-                             "class_id": r["class_id"], "path": rel.as_posix(),
-                             "source": r["member"], "group": r["group"]})
+                             "class_id": r["class_id"], "path": rel.as_posix(), "source": r["member"],
+                             "original_filename": r["filename"], "new_filename": rel.name, "group": r["group"]})
             if n % 10000 == 0:
                 log(f"PlantVillage: extracted {n}/{len(records)}")
     if missing:
@@ -324,7 +346,7 @@ def export_plantvillage(pv_dir: Path, records: list[dict], out_dir: Path) -> lis
 
 # --------------------------------------------------------------------------- PlantDoc
 
-def collect_plantdoc(pd_dir: Path, classes: list[dict]) -> list[dict]:
+def collect_plantdoc(pd_dir: Path, classes: list[dict], original_names: dict[Path, str]) -> list[dict]:
     items = []
     for orig_split in PD_ORIG_SPLITS:
         for c in classes:
@@ -334,7 +356,8 @@ def collect_plantdoc(pd_dir: Path, classes: list[dict]) -> list[dict]:
                 continue
             for path in sorted(folder.iterdir()):
                 if path.is_file():
-                    items.append({"path": path, "orig_split": orig_split, "class_id": c["class_id"]})
+                    items.append({"path": path, "orig_split": orig_split, "class_id": c["class_id"],
+                                  "orig_name": original_names.get(path, path.name)})
     return items
 
 
@@ -392,23 +415,26 @@ def stratified_group_split(labels: list[str], groups: np.ndarray, val_frac: floa
     return is_val
 
 
-def export_plantdoc(items: list[dict], groups: np.ndarray, is_val: np.ndarray, out_dir: Path) -> list[dict]:
-    manifest, used = [], set()
+def export_plantdoc(items: list[dict], groups: np.ndarray, is_val: np.ndarray, out_dir: Path,
+                    used: set[str]) -> list[dict]:
+    manifest, long_used = [], set()
     for it, g, val in zip(items, groups, is_val):
         split = FIELD_SPLITS[0] if val else FIELD_SPLITS[1]
         stem = re.sub(r"[^A-Za-z0-9._-]+", "_", it["path"].stem).strip("_") or "img"
-        ext = PIL_EXT.get(it["format"], it["path"].suffix.lower() or ".img")
+        ext = PIL_EXT.get(it["format"], it["path"].suffix.lower() or ".img")  # extension of the real format
         base = Path("plantdoc") / split / it["class_id"]
-        rel, k = base / f"{it['orig_split']}__{stem}{ext}", 1
-        while rel in used:
+        long_rel, k = base / f"{it['orig_split']}__{stem}{ext}", 1
+        while long_rel in long_used:
             k += 1
-            rel = base / f"{it['orig_split']}__{stem}_{k}{ext}"
-        used.add(rel)
+            long_rel = base / f"{it['orig_split']}__{stem}_{k}{ext}"
+        long_used.add(long_rel)
+        rel = short_rel_path(long_rel, used)
         (out_dir / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(it["path"], out_dir / rel)
         manifest.append({"dataset": "plantdoc", "config": "field", "split": split, "class_id": it["class_id"],
-                         "path": rel.as_posix(), "source": f"{it['orig_split']}/{it['path'].parent.name}/{it['path'].name}",
-                         "group": f"phash:{g}"})
+                         "path": rel.as_posix(),
+                         "source": f"{it['orig_split']}/{it['path'].parent.name}/{it['orig_name']}",
+                         "original_filename": it["orig_name"], "new_filename": rel.name, "group": f"phash:{g}"})
     return manifest
 
 
@@ -432,13 +458,15 @@ def split_name(row: dict) -> str:
 
 
 def write_split_manifest(path: Path, manifest: list[dict]) -> None:
-    """One row per image: path relative to the processed dir, class_id, split, source."""
+    """One row per image: path relative to the processed dir, class_id, split, source, and the
+    original and new (short, hashed) file names."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")
-        w.writerow(["path", "class_id", "split", "source"])
+        w.writerow(["path", "class_id", "split", "source", "original_filename", "new_filename"])
         for m in sorted(manifest, key=lambda m: m["path"]):
-            w.writerow([m["path"], m["class_id"], split_name(m), f"{m['dataset']}:{m['source']}"])
+            w.writerow([m["path"], m["class_id"], split_name(m), f"{m['dataset']}:{m['source']}",
+                        m["original_filename"], m["new_filename"]])
 
 
 def write_summary(path: Path, classes: list[dict], manifest: list[dict], configs: list[str]) -> list[str]:
@@ -473,11 +501,12 @@ def main() -> None:
     records = [r for r in records if (r["class_id"], r["group"]) in keep]
     carve_val_split(records, args.pv_val_frac, args.seed)
     log(f"PlantVillage: exporting {len(records)} images (cap {args.pv_cap}/class/config)")
-    manifest = export_plantvillage(pv_dir, records, args.out_dir)
+    used_names: set[str] = set()  # every output path, case-folded, to catch collisions of short names
+    manifest = export_plantvillage(pv_dir, records, args.out_dir, used_names)
 
     # 4. PlantDoc
-    pd_files = extract_plantdoc(pd_dir, classes, args.raw_dir / "plantdoc_files")
-    items = collect_plantdoc(pd_files, classes)
+    pd_files, pd_original_names = extract_plantdoc(pd_dir, classes, args.raw_dir / "plantdoc_files")
+    items = collect_plantdoc(pd_files, classes, pd_original_names)
     log(f"PlantDoc: {len(items)} files in kept classes; hashing")
     items, hashes = hash_images(items)
     groups = group_near_duplicates(hashes, args.phash_threshold)
@@ -487,11 +516,12 @@ def main() -> None:
     log(f"PlantDoc: {len(sizes)} groups; {len(multi)} near-duplicate groups covering "
         f"{sum(sizes[g] for g in multi)} images; {mixed} groups mix classes")
     is_val = stratified_group_split([it["class_id"] for it in items], groups, args.field_val_frac, args.seed)
-    manifest += export_plantdoc(items, groups, is_val, args.out_dir)
+    manifest += export_plantdoc(items, groups, is_val, args.out_dir, used_names)
 
     # 5. outputs
     with open(args.out_dir / "manifest.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["dataset", "config", "split", "class_id", "path", "source", "group"])
+        w = csv.DictWriter(f, fieldnames=["dataset", "config", "split", "class_id", "path", "source",
+                                          "original_filename", "new_filename", "group"])
         w.writeheader()
         w.writerows(manifest)
     columns = write_summary(args.summary, classes, manifest, args.pv_configs)
