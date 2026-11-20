@@ -18,6 +18,11 @@ in this repository; scripts in `src/` download and prepare them (see `src/prepar
   Images from [pratikkayal/PlantDoc-Dataset](https://github.com/pratikkayal/PlantDoc-Dataset),
   licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
+Synthetic training images for arm C (`src/gen/diffusion_inpaint.py`) are made with
+[stable-diffusion-v1-5/stable-diffusion-inpainting](https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-inpainting)
+(revision `8a4288a`), licensed [CreativeML OpenRAIL-M](https://huggingface.co/spaces/CompVis/stable-diffusion-license).
+The leaf in each image is the original PlantVillage leaf; only the background is generated.
+
 Figures in `results/` that show dataset images contain material from these datasets:
 
 - `results/figures/cutpaste_preview.png` shows PlantVillage leaves cut out, rotated, scaled and placed

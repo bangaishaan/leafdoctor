@@ -269,7 +269,10 @@ def prepare_out_dir(out: Path, overwrite: bool) -> None:
     out.mkdir(parents=True, exist_ok=True)
 
 
-def write_preview(records: list[dict], out_dir: Path, path: Path, n: int, seed: int) -> None:
+def write_preview(records: list[dict], out_dir: Path, path: Path, n: int, seed: int,
+                  caption=lambda r: r["background"],
+                  title: str = "Arm B: cut-and-paste on procedural backgrounds") -> None:
+    """N x N grid of generated images (records need 'class_id' and 'path' relative to out_dir)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -292,8 +295,8 @@ def write_preview(records: list[dict], out_dir: Path, path: Path, n: int, seed: 
     for ax, r in zip(axes.ravel(), picks):
         with Image.open(out_dir / r["path"]) as im:
             ax.imshow(im.convert("RGB").resize((256, 256), Image.LANCZOS))
-        ax.set_title(f"{r['class_id']}\n{r['background']}", fontsize=7)
-    fig.suptitle("Arm B: cut-and-paste on procedural backgrounds", fontsize=11)
+        ax.set_title(f"{r['class_id']}\n{caption(r)}", fontsize=7)
+    fig.suptitle(title, fontsize=11)
     fig.tight_layout(rect=(0, 0, 1, 0.975))
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=100)

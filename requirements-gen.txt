@@ -1,0 +1,5 @@
+# Extra packages for src/gen/diffusion_inpaint.py (arm C), on top of requirements.txt.
+# Only needed on the GPU machine that generates images (Kaggle); training does not use them.
+diffusers>=0.30
+transformers>=4.40
+accelerate>=0.30
