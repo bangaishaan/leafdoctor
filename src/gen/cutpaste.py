@@ -48,6 +48,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--preview", type=Path, default=REPO_ROOT / "results" / "figures" / "cutpaste_preview.png")
     p.add_argument("--preview-grid", type=int, default=6, help="preview is N x N images")
     p.add_argument("--per-leaf", type=int, default=1, help="images generated per selected leaf")
+    p.add_argument("--limit-per-class", type=int, default=0, help="only the first N selected leaves per class (0 = all)")
     p.add_argument("--canvas", type=int, default=512)
     p.add_argument("--scale", type=float, nargs=2, default=(0.4, 0.8), help="leaf longest side / canvas side")
     p.add_argument("--feather", type=float, nargs=2, default=(2.0, 3.0), help="mask edge feather in px")
@@ -309,7 +310,14 @@ def main() -> None:
         sys.exit(f"{a.selection} not found; run src/gen/select_leaves.py first")
     with open(a.selection, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
-    missing = [p for r in rows for p in (r["color_path"], r["segmented_path"]) if not (a.data_root / p).is_file()]
+    if a.limit_per_class:
+        kept, seen = [], {}
+        for r in rows:
+            seen[r["class_id"]] = seen.get(r["class_id"], 0) + 1
+            if seen[r["class_id"]] <= a.limit_per_class:
+                kept.append(r)
+        rows = kept
+    missing =[p for r in rows for p in (r["color_path"], r["segmented_path"]) if not (a.data_root / p).is_file()]
     if missing:
         sys.exit(f"{len(missing)} selected images missing under {a.data_root}, e.g. {missing[:2]}")
     if not 0 < a.scale[0] <= a.scale[1] < 1:
