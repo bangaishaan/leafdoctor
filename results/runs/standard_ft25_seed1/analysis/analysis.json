@@ -1,0 +1,407 @@
+{
+  "run": "standard_ft25_seed1",
+  "checks": {
+    "metrics.json classes == class_map.csv order": true,
+    "best.pt class_ids == class_map.csv order": true,
+    "pv_val: logits have 27 columns": true,
+    "pv_val: saved labels == labels rebuilt from split_manifest (row order)": true,
+    "pv_val: accuracy/macro-F1 recomputed from logits == metrics.json": true,
+    "pv_test: logits have 27 columns": true,
+    "pv_test: saved labels == labels rebuilt from split_manifest (row order)": true,
+    "pv_test: accuracy/macro-F1 recomputed from logits == metrics.json": true,
+    "field_val: logits have 27 columns": true,
+    "field_val: saved labels == labels rebuilt from split_manifest (row order)": true,
+    "field_val: accuracy/macro-F1 recomputed from logits == metrics.json": true,
+    "field_test: logits have 27 columns": true,
+    "field_test: saved labels == labels rebuilt from split_manifest (row order)": true,
+    "field_test: accuracy/macro-F1 recomputed from logits == metrics.json": true,
+    "pv_test: every class's recall > 0.9 (logit column i is class_map class i)": true
+  },
+  "splits": {
+    "pv_test": {
+      "n": 5403,
+      "top1_accuracy": 0.9946326115121229,
+      "top3_accuracy": 0.9996298352766981,
+      "macro_f1": 0.9945192620395502,
+      "crop_accuracy": 0.9981491763834907,
+      "per_crop_accuracy": {
+        "Apple": {
+          "n": 440,
+          "accuracy": 0.9954545454545455
+        },
+        "Bell pepper": {
+          "n": 449,
+          "accuracy": 0.9977728285077951
+        },
+        "Blueberry": {
+          "n": 324,
+          "accuracy": 0.9969135802469136
+        },
+        "Cherry": {
+          "n": 123,
+          "accuracy": 1.0
+        },
+        "Corn": {
+          "n": 549,
+          "accuracy": 1.0
+        },
+        "Grape": {
+          "n": 268,
+          "accuracy": 1.0
+        },
+        "Peach": {
+          "n": 71,
+          "accuracy": 1.0
+        },
+        "Potato": {
+          "n": 376,
+          "accuracy": 0.9973404255319149
+        },
+        "Raspberry": {
+          "n": 162,
+          "accuracy": 0.9938271604938271
+        },
+        "Soybean": {
+          "n": 287,
+          "accuracy": 0.9860627177700348
+        },
+        "Squash": {
+          "n": 314,
+          "accuracy": 1.0
+        },
+        "Strawberry": {
+          "n": 80,
+          "accuracy": 1.0
+        },
+        "Tomato": {
+          "n": 1960,
+          "accuracy": 1.0
+        }
+      },
+      "top5_confusions": [
+        {
+          "true": "corn_gray_leaf_spot",
+          "predicted": "corn_northern_blight",
+          "count": 5,
+          "share_of_true_class": 0.041666666666666664
+        },
+        {
+          "true": "corn_northern_blight",
+          "predicted": "corn_gray_leaf_spot",
+          "count": 5,
+          "share_of_true_class": 0.02358490566037736
+        },
+        {
+          "true": "soybean_healthy",
+          "predicted": "cherry_healthy",
+          "count": 3,
+          "share_of_true_class": 0.010452961672473868
+        },
+        {
+          "true": "tomato_ylcv",
+          "predicted": "tomato_bacterial_spot",
+          "count": 3,
+          "share_of_true_class": 0.00974025974025974
+        },
+        {
+          "true": "tomato_late_blight",
+          "predicted": "tomato_bacterial_spot",
+          "count": 2,
+          "share_of_true_class": 0.006734006734006734
+        }
+      ]
+    },
+    "field_test": {
+      "n": 1802,
+      "top1_accuracy": 0.19478357380688124,
+      "top3_accuracy": 0.3734739178690344,
+      "macro_f1": 0.15309211257369315,
+      "crop_accuracy": 0.427857935627081,
+      "per_crop_accuracy": {
+        "Apple": {
+          "n": 191,
+          "accuracy": 0.14659685863874344
+        },
+        "Bell pepper": {
+          "n": 92,
+          "accuracy": 0.06521739130434782
+        },
+        "Blueberry": {
+          "n": 81,
+          "accuracy": 0.08641975308641975
+        },
+        "Cherry": {
+          "n": 40,
+          "accuracy": 0.05
+        },
+        "Corn": {
+          "n": 263,
+          "accuracy": 0.870722433460076
+        },
+        "Grape": {
+          "n": 93,
+          "accuracy": 0.5806451612903226
+        },
+        "Peach": {
+          "n": 79,
+          "accuracy": 0.0
+        },
+        "Potato": {
+          "n": 155,
+          "accuracy": 0.3032258064516129
+        },
+        "Raspberry": {
+          "n": 83,
+          "accuracy": 0.12048192771084337
+        },
+        "Soybean": {
+          "n": 47,
+          "accuracy": 0.0
+        },
+        "Squash": {
+          "n": 91,
+          "accuracy": 0.6263736263736264
+        },
+        "Strawberry": {
+          "n": 67,
+          "accuracy": 0.0
+        },
+        "Tomato": {
+          "n": 520,
+          "accuracy": 0.6365384615384615
+        }
+      },
+      "top5_confusions": [
+        {
+          "true": "corn_northern_blight",
+          "predicted": "corn_gray_leaf_spot",
+          "count": 67,
+          "share_of_true_class": 0.5
+        },
+        {
+          "true": "corn_common_rust",
+          "predicted": "corn_gray_leaf_spot",
+          "count": 50,
+          "share_of_true_class": 0.6172839506172839
+        },
+        {
+          "true": "raspberry_healthy",
+          "predicted": "tomato_late_blight",
+          "count": 37,
+          "share_of_true_class": 0.4457831325301205
+        },
+        {
+          "true": "potato_late_blight",
+          "predicted": "tomato_late_blight",
+          "count": 33,
+          "share_of_true_class": 0.44594594594594594
+        },
+        {
+          "true": "tomato_septoria",
+          "predicted": "tomato_early_blight",
+          "count": 29,
+          "share_of_true_class": 0.27358490566037735
+        }
+      ]
+    }
+  },
+  "comparison": [
+    {
+      "model": "Classical: HSV + LBP, RBF SVM",
+      "lab_acc": 0.9272626318711826,
+      "field_acc": 0.03551609322974473,
+      "lab_f1": 0.9262194757693086,
+      "field_f1": 0.011488994306590799,
+      "lab_top3": null,
+      "field_top3": null
+    },
+    {
+      "model": "Frozen MobileNetV3 + logistic reg.",
+      "lab_acc": 0.9807514343883028,
+      "field_acc": 0.19755826859045506,
+      "lab_f1": 0.9797182120542415,
+      "field_f1": 0.17333414292264496,
+      "lab_top3": null,
+      "field_top3": null
+    },
+    {
+      "model": "Fine-tuned MobileNetV3 (standard_ft25_seed1)",
+      "lab_acc": 0.9946326115121229,
+      "field_acc": 0.19478357380688124,
+      "lab_f1": 0.9945192620395502,
+      "field_f1": 0.15309211257369315,
+      "lab_top3": 0.9996298352766981,
+      "field_top3": 0.3734739178690344
+    }
+  ],
+  "grid": [
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/apple_rust/3fb03b0b0ed1.jpg",
+      "true": "apple_rust",
+      "predicted": "corn_gray_leaf_spot",
+      "confidence": 0.15920384228229523,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/blueberry_healthy/091e12d55f9c.jpg",
+      "true": "blueberry_healthy",
+      "predicted": "blueberry_healthy",
+      "confidence": 0.25806766748428345,
+      "correct": true
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/cherry_healthy/3a08ea99f640.jpg",
+      "true": "cherry_healthy",
+      "predicted": "grape_healthy",
+      "confidence": 0.11345759779214859,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/cherry_healthy/42fcc9bca12a.jpg",
+      "true": "cherry_healthy",
+      "predicted": "grape_black_rot",
+      "confidence": 0.16241179406642914,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/corn_northern_blight/0ef21716c361.jpg",
+      "true": "corn_northern_blight",
+      "predicted": "corn_common_rust",
+      "confidence": 0.7409970760345459,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/corn_northern_blight/9e8a53a48b11.jpg",
+      "true": "corn_northern_blight",
+      "predicted": "tomato_early_blight",
+      "confidence": 0.2944881021976471,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/grape_black_rot/0c084f262b31.jpg",
+      "true": "grape_black_rot",
+      "predicted": "grape_black_rot",
+      "confidence": 0.3044849932193756,
+      "correct": true
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/grape_healthy/0d88fe75643a.jpg",
+      "true": "grape_healthy",
+      "predicted": "grape_healthy",
+      "confidence": 0.6825815439224243,
+      "correct": true
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/peach_healthy/d45f591c2305.jpg",
+      "true": "peach_healthy",
+      "predicted": "pepper_bacterial_spot",
+      "confidence": 0.2691461145877838,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/pepper_bacterial_spot/e23dd15cc008.jpg",
+      "true": "pepper_bacterial_spot",
+      "predicted": "corn_gray_leaf_spot",
+      "confidence": 0.5539531707763672,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/pepper_healthy/bd24facbf26c.jpg",
+      "true": "pepper_healthy",
+      "predicted": "tomato_healthy",
+      "confidence": 0.3666117191314697,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/potato_early_blight/54eb8be32efb.jpg",
+      "true": "potato_early_blight",
+      "predicted": "tomato_leaf_mold",
+      "confidence": 0.4368312358856201,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/potato_late_blight/cfaac426a744.jpg",
+      "true": "potato_late_blight",
+      "predicted": "tomato_late_blight",
+      "confidence": 0.8218293190002441,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/raspberry_healthy/03ab58f59827.jpg",
+      "true": "raspberry_healthy",
+      "predicted": "tomato_late_blight",
+      "confidence": 0.6326289772987366,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/raspberry_healthy/8332063713db.jpg",
+      "true": "raspberry_healthy",
+      "predicted": "tomato_late_blight",
+      "confidence": 0.39772555232048035,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/raspberry_healthy/9baa8fcaf8ed.jpg",
+      "true": "raspberry_healthy",
+      "predicted": "tomato_early_blight",
+      "confidence": 0.5896238088607788,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/squash_powdery_mildew/c35556ef3d3f.jpg",
+      "true": "squash_powdery_mildew",
+      "predicted": "squash_powdery_mildew",
+      "confidence": 0.1448339968919754,
+      "correct": true
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/strawberry_healthy/cf0258f78437.jpg",
+      "true": "strawberry_healthy",
+      "predicted": "grape_healthy",
+      "confidence": 0.4254642426967621,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/tomato_leaf_mold/0a9f493438cc.jpg",
+      "true": "tomato_leaf_mold",
+      "predicted": "tomato_late_blight",
+      "confidence": 0.9039296507835388,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/tomato_leaf_mold/15ea89ae21a8.jpg",
+      "true": "tomato_leaf_mold",
+      "predicted": "tomato_healthy",
+      "confidence": 0.13231059908866882,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/tomato_leaf_mold/ffcb36976e1d.jpg",
+      "true": "tomato_leaf_mold",
+      "predicted": "tomato_late_blight",
+      "confidence": 0.9313949942588806,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/tomato_mosaic/d0032c353b35.jpg",
+      "true": "tomato_mosaic",
+      "predicted": "potato_early_blight",
+      "confidence": 0.54781574010849,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/tomato_septoria/888bcac80895.jpg",
+      "true": "tomato_septoria",
+      "predicted": "potato_early_blight",
+      "confidence": 0.2987774908542633,
+      "correct": false
+    },
+    {
+      "file": "C:/Users/banga/Downloads/leafdoctor/data/processed/plantdoc/field_test/tomato_septoria/d1dae071a5e1.jpg",
+      "true": "tomato_septoria",
+      "predicted": "tomato_early_blight",
+      "confidence": 0.3476698398590088,
+      "correct": false
+    }
+  ]
+}
