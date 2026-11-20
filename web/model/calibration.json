@@ -1,0 +1,32 @@
+{
+  "run": "standard_ft25_seed1",
+  "temperature": 0.5381,
+  "threshold": 0.9963,
+  "threshold_rule": "no threshold reaches accepted accuracy 0.5 on field_val; highest accepted accuracy with coverage >= 0.1",
+  "coverage": 0.1021,
+  "accepted_accuracy": 0.4937,
+  "fitted_on": {
+    "temperature": "pv_val logits (NLL)",
+    "threshold": "field_val logits"
+  },
+  "report": {
+    "pv_val": {
+      "n": 3303,
+      "coverage": 0.9824402058734484,
+      "accepted_accuracy": 1.0,
+      "overall_accuracy": 0.9975779594308205
+    },
+    "field_val": {
+      "n": 774,
+      "coverage": 0.1020671834625323,
+      "accepted_accuracy": 0.4936708860759494,
+      "overall_accuracy": 0.20801033591731266
+    },
+    "field_test": {
+      "n": 1802,
+      "coverage": 0.09045504994450611,
+      "accepted_accuracy": 0.4171779141104294,
+      "overall_accuracy": 0.19478357380688124
+    }
+  }
+}

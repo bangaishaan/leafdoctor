@@ -1,0 +1,37 @@
+{
+  "run": "standard_ft25_seed1",
+  "model": "mobilenetv3_large_100",
+  "epoch": 21,
+  "opset": 17,
+  "input": {
+    "name": "input",
+    "shape": [
+      1,
+      3,
+      224,
+      224
+    ],
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "resize": "direct resize to 224x224, bilinear, after EXIF rotation"
+  },
+  "int8_mb": 4.73,
+  "fp32_mb": 16.93,
+  "calibration_images": 200,
+  "test_images": 500,
+  "pv_test_top1": {
+    "pytorch": 0.996,
+    "onnx_fp32": 0.996,
+    "onnx_int8": 0.988
+  },
+  "int8_vs_pytorch_top1_agreement": 0.984,
+  "fp32_vs_pytorch_max_abs_logit_diff": 4.5299530029296875e-06
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeafDoctor Help</title>
+  <meta name="theme-color" content="#1f4d34">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">LeafDoctor</a>
+    <nav><a href="./">Check a leaf</a><a href="help.html" aria-current="page">Help</a></nav>
+  </header>
+
+  <main class="wrap prose">
+    <h1>Help</h1>
+
+    <h2>Taking a good photo</h2>
+    <ul>
+      <li>Photograph <strong>one leaf</strong>, filling most of the frame.</li>
+      <li>Use even light. Avoid strong shadows, glare and flash reflections.</li>
+      <li>Keep the leaf in focus and include the area with symptoms.</li>
+      <li>A plain background, such as a sheet of paper, helps.</li>
+    </ul>
+
+    <h2>Reading the result</h2>
+    <p>LeafDoctor shows its three most likely classes with a confidence bar each. Confidence is calibrated, but a
+      high number does not mean the answer is right.</p>
+    <p>If the top confidence is below the app's threshold, you see <strong>“Unsure — ask a local agricultural
+      expert”</strong>. On real field photos this happens most of the time, by design: in testing on field photos the
+      model was right only about one time in five overall, and about four to five times in ten when it was confident
+      enough to answer.</p>
+    <p>The “what to look for” line describes typical signs of the top class so you can compare with your leaf. It is
+      not treatment advice.</p>
+
+    <h2>What it can recognise</h2>
+    <p>27 classes: healthy leaves and common diseases of apple, blueberry, cherry, corn, grape, peach, bell pepper,
+      potato, raspberry, soybean, squash, strawberry and tomato. Any other plant or problem will be forced into one of
+      these classes, so expect wrong answers for anything else.</p>
+
+    <h2>Privacy and offline use</h2>
+    <p>The model runs in your browser with ONNX Runtime Web. Photos are never uploaded. After the first visit the app
+      and model are stored on your device and work without a connection; you can also add it to your home screen.</p>
+
+    <h2>Limitations</h2>
+    <ul>
+      <li>Trained only on PlantVillage lab photos (single leaves on plain backgrounds).</li>
+      <li>Field photos with several leaves, soil, hands or fruit reduce accuracy a lot.</li>
+      <li>Not a substitute for an expert. For decisions about your crop, contact a local agricultural extension
+        service or plant clinic.</li>
+    </ul>
+
+    <h2>Credits</h2>
+    <p>PlantVillage dataset: Mohanty, Hughes &amp; Salathé (2016), CC BY-SA 3.0. Field evaluation: PlantDoc,
+      Singh et al. (2020), CC BY 4.0. Inference: ONNX Runtime Web (MIT).</p>
+  </main>
+
+  <footer class="footer"><a href="./">Back to the checker</a></footer>
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  </script>
+</body>
+</html>

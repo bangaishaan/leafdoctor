@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeafDoctor</title>
+  <meta name="description" content="Offline plant leaf disease checker that runs entirely on your device.">
+  <meta name="theme-color" content="#1f4d34">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">LeafDoctor</a>
+    <nav><a href="./" aria-current="page">Check a leaf</a><a href="help.html">Help</a></nav>
+  </header>
+
+  <main class="wrap">
+    <section class="intro">
+      <h1>Check a plant leaf</h1>
+      <p>Photograph one leaf, or upload a photo. The check runs on this device; your photo is never uploaded.</p>
+    </section>
+
+    <section class="card" aria-labelledby="input-title">
+      <h2 id="input-title" class="visually-hidden">Choose a photo</h2>
+      <div class="actions">
+        <button id="camera-btn" class="btn primary" type="button">Use camera</button>
+        <label class="btn" for="file-input">Upload photo</label>
+        <input id="file-input" type="file" accept="image/*" class="visually-hidden">
+        <input id="capture-input" type="file" accept="image/*" capture="environment" class="visually-hidden">
+      </div>
+      <div id="camera" class="camera" hidden>
+        <video id="video" playsinline muted></video>
+        <div class="actions">
+          <button id="snap-btn" class="btn primary" type="button">Take photo</button>
+          <button id="close-camera-btn" class="btn" type="button">Close camera</button>
+        </div>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">Loading model…</p>
+    </section>
+
+    <section id="result" class="card result" hidden aria-labelledby="result-title">
+      <div class="result-grid">
+        <img id="preview" alt="Your leaf photo">
+        <div>
+          <h2 id="result-title">Result</h2>
+          <div id="unsure" class="unsure" hidden>
+            <strong>Unsure — ask a local agricultural expert.</strong>
+            <p>The model is not confident enough about this photo. The guesses below are shown for information only.</p>
+          </div>
+          <ol id="top3" class="top3"></ol>
+          <p id="look-for" class="look-for"></p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="disclaimer">
+      <strong>Not a diagnosis.</strong> LeafDoctor is a student computer-vision project. It knows 27 leaf classes from 13 crops,
+      was trained on lab photos, and is often wrong on real field photos. Do not base treatment or spraying decisions on it;
+      confirm with a local agricultural extension service or plant clinic.
+    </aside>
+  </main>
+
+  <footer class="footer">
+    Runs offline after the first visit · Model: MobileNetV3, int8 ONNX ·
+    Training data: PlantVillage (CC BY-SA 3.0) · <a href="help.html">Help</a>
+  </footer>
+
+  <script src="ort/ort.wasm.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
