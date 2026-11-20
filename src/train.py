@@ -12,12 +12,20 @@ Recipe: 224x224, AdamW, linear warmup then cosine LR, label smoothing 0.1,
 mixed precision on CUDA, class-balanced sampling, and RandomResizedCrop, flips,
 rotation +-30 deg, ColorJitter and Gaussian blur augmentation.
 
-The best epoch is chosen by pv_val macro-F1 only. PlantDoc (field_val,
+LP-FT (Kumar et al. 2022): the first --lp-epochs train only the new classifier
+head on a frozen backbone (linear probe, backbone in eval mode). After that the
+whole network is fine-tuned, with the backbone learning rate scaled by
+--backbone-lr-mult (default 0.1, i.e. 10x slower than the head) and its own
+warmup + cosine schedule. --epochs counts both phases.
+
+The best epoch is chosen by pv_val macro-F1 only. field_val accuracy and
+macro-F1 are logged every epoch for monitoring, but PlantDoc (field_val,
 field_test) is never trained on and plays no part in choosing the epoch.
 
 Outputs in <out>/<arm>_seed<seed>/:
   best.pt                              best checkpoint (state_dict + metadata)
   logits_<split>.npy, labels_<split>.npy  for pv_val, pv_test, field_val, field_test
+  history.csv                          per-epoch loss, LRs, pv_val and field_val metrics
   metrics.json                         accuracy, macro-F1, per-class F1, history
 
 Example:
@@ -62,7 +70,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--arm", choices=ARMS, default="standard")
     p.add_argument("--extra-train-dir", type=Path, help="extra training images, one sub-folder per class_id")
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--epochs", type=int, default=25)
+    p.add_argument("--epochs", type=int, default=15, help="total epochs, including the --lp-epochs")
+    p.add_argument("--lp-epochs", type=int, default=3,
+                   help="linear-probe warm-up epochs with the backbone frozen (0 = plain fine-tuning)")
+    p.add_argument("--backbone-lr-mult", type=float, default=0.1,
+                   help="backbone learning rate = --lr x this (the new head uses --lr)")
     p.add_argument("--out", type=Path, default=REPO_ROOT / "results" / "runs",
                    help="run folder is <out>/<arm>_seed<seed>/")
     p.add_argument("--class-map", type=Path, help="default: <data-root>/class_map.csv, else data/class_map.csv")
@@ -88,6 +100,10 @@ def parse_args() -> argparse.Namespace:
         p.error(f"--arm {a.arm} needs --extra-train-dir")
     if a.extra_train_dir and not a.extra_train_dir.is_dir():
         p.error(f"--extra-train-dir {a.extra_train_dir} is not a folder")
+    if not 0 <= a.lp_epochs < a.epochs:
+        p.error("--lp-epochs must be >= 0 and smaller than --epochs")
+    if a.backbone_lr_mult <= 0:
+        p.error("--backbone-lr-mult must be > 0")
     a.class_map = a.class_map or first_existing(a.data_root / "class_map.csv", REPO_ROOT / "data" / "class_map.csv")
     a.split_manifest = a.split_manifest or first_existing(a.data_root / "split_manifest.csv",
                                                           REPO_ROOT / "data" / "split_manifest.csv")
@@ -207,13 +223,42 @@ def cosine_with_warmup(warmup_steps: int, total_steps: int):
     return factor
 
 
-def param_groups(model: nn.Module, weight_decay: float) -> list[dict]:
-    """No weight decay on biases and normalisation parameters."""
-    decay, no_decay = [], []
+def delayed(schedule, delay_steps: int):
+    """Factor 0 for the first delay_steps (backbone frozen during the linear probe), then `schedule`."""
+    return lambda step: 0.0 if step < delay_steps else schedule(step - delay_steps)
+
+
+def param_groups(model: nn.Module, lr: float, backbone_lr_mult: float, weight_decay: float) -> list[dict]:
+    """Head (new classifier) at lr, pretrained backbone at lr * backbone_lr_mult.
+    No weight decay on biases and normalisation parameters."""
+    head_ids = {id(p) for p in model.get_classifier().parameters()}
+    groups = {(part, wd): [] for part in ("backbone", "head") for wd in (True, False)}
     for p in model.parameters():
-        if p.requires_grad:
-            (no_decay if p.ndim <= 1 else decay).append(p)
-    return [{"params": decay, "weight_decay": weight_decay}, {"params": no_decay, "weight_decay": 0.0}]
+        groups[("head" if id(p) in head_ids else "backbone", p.ndim > 1)].append(p)
+    return [{"params": ps, "name": part, "lr": lr * (1.0 if part == "head" else backbone_lr_mult),
+             "weight_decay": weight_decay if wd else 0.0}
+            for (part, wd), ps in groups.items() if ps]
+
+
+def set_phase(model: nn.Module, linear_probe: bool) -> None:
+    """Linear probe: backbone frozen and in eval mode (no BN statistic updates). Fine-tune: all trainable."""
+    head = model.get_classifier()
+    head_ids = {id(p) for p in head.parameters()}
+    for p in model.parameters():
+        if id(p) not in head_ids:
+            p.requires_grad = not linear_probe
+    if linear_probe:
+        model.eval()
+        head.train()
+    else:
+        model.train()
+
+
+def write_history(path: Path, history: list[dict]) -> None:
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=list(history[0]))
+        w.writeheader()
+        w.writerows(history)
 
 
 @torch.inference_mode()
@@ -238,20 +283,21 @@ def metrics(logits: np.ndarray, labels: np.ndarray, class_ids: list[str]) -> dic
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True)  # live logs on Kaggle, including library output
     args = parse_args()
     seed_everything(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     use_amp = device.type == "cuda" and not args.no_amp
     if device.type == "cuda":
         torch.backends.cudnn.benchmark = True
-    run_dir = args.out / f"{args.arm}_seed{args.seed}"
-    run_dir.mkdir(parents=True, exist_ok=True)
-
     class_ids = load_class_ids(args.class_map)
     splits = load_splits(args, class_ids)
     train_items = list(splits["pv_train"])
     extra = load_extra(args.extra_train_dir, class_ids) if args.extra_train_dir else []
     train_items += extra
+    run_dir = args.out / f"{args.arm}_seed{args.seed}"  # created only once the inputs are known to be valid
+    run_dir.mkdir(parents=True, exist_ok=True)
     log(f"device={device} amp={use_amp} arm={args.arm} seed={args.seed} run_dir={run_dir}")
     log(f"train: {len(splits['pv_train'])} pv_train + {len(extra)} extra; "
         + ", ".join(f"{s}={len(splits[s])}" for s in EVAL_SPLITS)
@@ -273,19 +319,32 @@ def main() -> None:
                                   shuffle=False, **loader_kw) for s in EVAL_SPLITS}
 
     model = timm.create_model(args.model, pretrained=True, num_classes=len(class_ids)).to(device)
-    optimizer = torch.optim.AdamW(param_groups(model, args.weight_decay), lr=args.lr)
+    optimizer = torch.optim.AdamW(param_groups(model, args.lr, args.backbone_lr_mult, args.weight_decay))
     steps_per_epoch = len(train_loader)
+    total_steps, lp_steps = args.epochs * steps_per_epoch, args.lp_epochs * steps_per_epoch
+    warmup_steps = int(args.warmup_epochs * steps_per_epoch)
+    head_schedule = cosine_with_warmup(warmup_steps, total_steps)
+    backbone_schedule = delayed(cosine_with_warmup(warmup_steps, total_steps - lp_steps), lp_steps)
     scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer, cosine_with_warmup(int(args.warmup_epochs * steps_per_epoch), args.epochs * steps_per_epoch))
+        optimizer, [head_schedule if g["name"] == "head" else backbone_schedule for g in optimizer.param_groups])
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
+    log(f"schedule: {args.lp_epochs} linear-probe epochs (backbone frozen), then "
+        f"{args.epochs - args.lp_epochs} fine-tuning epochs; head lr {args.lr:g}, "
+        f"backbone lr {args.lr * args.backbone_lr_mult:g}")
+
+    def current_lr(part: str) -> float:
+        return next(g["lr"] for g in optimizer.param_groups if g["name"] == part)
 
     best_f1, best_epoch, history = -1.0, 0, []
     ckpt_path = run_dir / "best.pt"
     t_start = time.time()
     for epoch in range(1, args.epochs + 1):
         t = time.time()
-        model.train()
+        phase = "lp" if epoch <= args.lp_epochs else "ft"
+        if args.lp_epochs and epoch == args.lp_epochs + 1:
+            log("linear probe done; unfreezing the backbone for fine-tuning")
+        set_phase(model, linear_probe=phase == "lp")
         loss_sum, correct, seen = 0.0, 0, 0
         for x, y in train_loader:
             x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
@@ -296,23 +355,29 @@ def main() -> None:
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
+            lr_head, lr_backbone = current_lr("head"), current_lr("backbone")  # LR this step used
             scheduler.step()
             loss_sum += loss.item() * len(y)
             correct += (out.argmax(1) == y).sum().item()
             seen += len(y)
 
         val = metrics(*predict(model, eval_loaders["pv_val"], device, use_amp), class_ids)
-        improved = val["macro_f1"] > best_f1
+        field = metrics(*predict(model, eval_loaders["field_val"], device, use_amp), class_ids)  # monitoring only
+        improved = val["macro_f1"] > best_f1  # selection uses pv_val only
         if improved:
             best_f1, best_epoch = val["macro_f1"], epoch
             torch.save({"model": args.model, "state_dict": model.state_dict(), "class_ids": class_ids,
                         "image_size": args.image_size, "mean": IMAGENET_MEAN, "std": IMAGENET_STD,
                         "epoch": epoch, "pv_val_macro_f1": best_f1, "arm": args.arm, "seed": args.seed}, ckpt_path)
-        history.append({"epoch": epoch, "train_loss": loss_sum / seen, "train_acc": correct / seen,
+        history.append({"epoch": epoch, "phase": phase, "train_loss": loss_sum / seen, "train_acc": correct / seen,
                         "pv_val_accuracy": val["accuracy"], "pv_val_macro_f1": val["macro_f1"],
-                        "lr": optimizer.param_groups[0]["lr"], "seconds": round(time.time() - t, 1)})
-        log(f"epoch {epoch:>3}/{args.epochs}  loss {loss_sum / seen:.4f}  train acc {correct / seen:.3f}  "
-            f"pv_val acc {val['accuracy']:.4f}  macro-F1 {val['macro_f1']:.4f}"
+                        "field_val_accuracy": field["accuracy"], "field_val_macro_f1": field["macro_f1"],
+                        "lr_head": lr_head, "lr_backbone": lr_backbone, "best_so_far": improved,
+                        "seconds": round(time.time() - t, 1)})
+        write_history(run_dir / "history.csv", history)  # rewritten every epoch so it can be watched live
+        log(f"epoch {epoch:>3}/{args.epochs} [{phase}]  loss {loss_sum / seen:.4f}  train acc {correct / seen:.3f}  "
+            f"pv_val acc {val['accuracy']:.4f} F1 {val['macro_f1']:.4f}  "
+            f"field_val acc {field['accuracy']:.4f} F1 {field['macro_f1']:.4f}"
             f"{'  *best' if improved else ''}  ({time.time() - t:.0f}s)")
 
     log(f"best epoch {best_epoch} (pv_val macro-F1 {best_f1:.4f}); evaluating all splits")
@@ -327,7 +392,10 @@ def main() -> None:
 
     report = {
         "arm": args.arm, "seed": args.seed, "model": args.model,
-        "selection": "best epoch by pv_val macro-F1; PlantDoc not used for training or selection",
+        "selection": "best epoch by pv_val macro-F1; PlantDoc not used for training or selection "
+                     "(field_val logged per epoch for monitoring only)",
+        "schedule": {"epochs": args.epochs, "lp_epochs": args.lp_epochs, "head_lr": args.lr,
+                     "backbone_lr": args.lr * args.backbone_lr_mult},
         "best_epoch": best_epoch, "splits": results, "history": history, "classes": class_ids,
         "train_images": {"pv_train": len(splits["pv_train"]), "extra": len(extra)},
         "args": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
