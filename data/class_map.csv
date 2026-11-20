@@ -1,0 +1,28 @@
+class_id,label,plantvillage_folder,plantdoc_folder,pv_images,pd_train_images,pd_test_images,pd_total
+apple_scab,Apple — scab,Apple___Apple_scab,Apple Scab Leaf,630,83,10,93
+apple_rust,Apple — cedar apple rust,Apple___Cedar_apple_rust,Apple rust leaf,275,79,10,89
+apple_healthy,Apple — healthy,Apple___healthy,Apple leaf,1645,82,9,91
+blueberry_healthy,Blueberry — healthy,Blueberry___healthy,Blueberry leaf,1502,106,11,117
+cherry_healthy,Cherry — healthy,Cherry_(including_sour)___healthy,Cherry leaf,854,47,10,57
+corn_gray_leaf_spot,Corn — gray leaf spot,Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot,Corn Gray leaf spot,513,64,4,68
+corn_common_rust,Corn — common rust,Corn_(maize)___Common_rust_,Corn rust leaf,1192,106,10,116
+corn_northern_blight,Corn — northern leaf blight,Corn_(maize)___Northern_Leaf_Blight,Corn leaf blight,985,180,12,192
+grape_black_rot,Grape — black rot,Grape___Black_rot,grape leaf black rot,1180,56,8,64
+grape_healthy,Grape — healthy,Grape___healthy,grape leaf,423,57,12,69
+peach_healthy,Peach — healthy,Peach___healthy,Peach leaf,360,103,9,112
+pepper_bacterial_spot,Bell pepper — bacterial spot,"Pepper,_bell___Bacterial_spot",Bell_pepper leaf spot,997,62,9,71
+pepper_healthy,Bell pepper — healthy,"Pepper,_bell___healthy",Bell_pepper leaf,1478,53,8,61
+potato_early_blight,Potato — early blight,Potato___Early_blight,Potato leaf early blight,1000,109,8,117
+potato_late_blight,Potato — late blight,Potato___Late_blight,Potato leaf late blight,1000,97,8,105
+raspberry_healthy,Raspberry — healthy,Raspberry___healthy,Raspberry leaf,371,112,7,119
+soybean_healthy,Soybean — healthy,Soybean___healthy,Soyabean leaf,5090,57,8,65
+squash_powdery_mildew,Squash — powdery mildew,Squash___Powdery_mildew,Squash Powdery mildew leaf,1835,124,6,130
+strawberry_healthy,Strawberry — healthy,Strawberry___healthy,Strawberry leaf,456,88,8,96
+tomato_bacterial_spot,Tomato — bacterial spot,Tomato___Bacterial_spot,Tomato leaf bacterial spot,2127,101,9,110
+tomato_early_blight,Tomato — early blight,Tomato___Early_blight,Tomato Early blight leaf,1000,79,9,88
+tomato_late_blight,Tomato — late blight,Tomato___Late_blight,Tomato leaf late blight,1909,101,10,111
+tomato_leaf_mold,Tomato — leaf mold,Tomato___Leaf_Mold,Tomato mold leaf,952,85,6,91
+tomato_septoria,Tomato — Septoria leaf spot,Tomato___Septoria_leaf_spot,Tomato Septoria leaf spot,1771,140,11,151
+tomato_mosaic,Tomato — mosaic virus,Tomato___Tomato_mosaic_virus,Tomato leaf mosaic virus,373,44,10,54
+tomato_ylcv,Tomato — yellow leaf curl virus,Tomato___Tomato_Yellow_Leaf_Curl_Virus,Tomato leaf yellow virus,5357,70,6,76
+tomato_healthy,Tomato — healthy,Tomato___healthy,Tomato leaf,1591,55,8,63
