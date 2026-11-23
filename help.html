@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeafDoctor: help</title>
+<meta name="theme-color" content="#1f5f3a">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:#1c2420; background:#f6f8f6; }
+  header { background:#1f5f3a; color:#fff; padding:14px 16px; display:flex; align-items:center; }
+  header h1 { font-size:20px; margin:0; flex:1; } header a { color:#fff; }
+  main { max-width:620px; margin:0 auto; padding:16px; }
+  section { background:#fff; border:1px solid #dde5df; border-radius:14px; padding:4px 16px 12px; margin-bottom:14px; }
+  h2 { font-size:17px; color:#1f5f3a; } li { margin-bottom:4px; }
+</style>
+</head>
+<body>
+<header><h1>🌿 LeafDoctor help</h1><a href="./">← Back</a></header>
+<main>
+<section>
+  <h2>What it does</h2>
+  <p>LeafDoctor looks at a photo of one leaf and suggests the three most likely conditions, with a confidence for each. The model runs inside your phone's browser. <b>Your photos are never uploaded</b>, and after the first visit the app works without internet.</p>
+</section>
+<section>
+  <h2>How to take a good photo</h2>
+  <ul>
+    <li>Photograph <b>one leaf</b> and fill most of the frame with it.</li>
+    <li>Use daylight, but avoid strong glare. Shade the leaf with your hand if the sun is harsh.</li>
+    <li>Hold the phone steady and tap the screen to focus.</li>
+    <li>Photograph the side of the leaf that shows the symptoms best.</li>
+  </ul>
+</section>
+<section>
+  <h2>Reading the result</h2>
+  <ul>
+    <li><b>Most likely + confidence:</b> the model's best guess and how sure it is (calibrated on real field photos).</li>
+    <li><b>Heat-map:</b> red and yellow areas are where the model looked. If it is looking at the soil or background rather than the leaf, do not trust the result.</li>
+    <li><b>"Not sure: ask an expert":</b> shown when the confidence is below the safety threshold, or the photo is too dark or blurry. The suggestions shown with it are for an expert only.</li>
+    <li><b>Expert confirmed / wrong:</b> once an extension officer has checked the leaf, record their verdict. It is saved only on this phone and can be exported as a CSV to improve the model.</li>
+  </ul>
+</section>
+<section>
+  <h2>What it knows</h2>
+  <p>28 leaf conditions on 14 crops: apple (scab, cedar rust, healthy), bell pepper (bacterial spot, healthy), blueberry, cherry, peach, raspberry, soybean and strawberry (healthy only), corn (gray leaf spot, northern leaf blight, common rust), grape (black rot, healthy), potato (early and late blight), squash (powdery mildew), and tomato (bacterial spot, early blight, late blight, leaf mould, Septoria leaf spot, spider mites, mosaic virus, yellow leaf curl virus, healthy).</p>
+  <p><b>It does not know</b> other crops (for example date palm, cucumber or citrus), other diseases, pests other than spider mites, nutrient deficiencies, or water stress. It may still give an answer for these, which is why the "not sure" state matters.</p>
+</section>
+<section>
+  <h2>Limits and safety</h2>
+  <ul>
+    <li>The result is <b>indicative only</b>, not a diagnosis. Always confirm with your local agricultural extension office before you treat or spray anything.</li>
+    <li>The model was trained mostly on lab photos and tested on real field photos, where it is much less accurate. See the project report for the numbers.</li>
+    <li>The app gives no treatment or pesticide advice, on purpose.</li>
+  </ul>
+</section>
+<section>
+  <h2>About</h2>
+  <p>A student project for MAIB AI 221 Computer Vision with Applications, SP Jain School of Global Management. Data: PlantVillage and PlantDoc (CC BY 4.0). Model: MobileNetV3-Small, running with ONNX Runtime Web. Synthetic training images were made with SD-Turbo.</p>
+</section>
+</main>
+</body>
+</html>

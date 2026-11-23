@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LeafDoctor: offline plant-disease checker</title>
+<meta name="theme-color" content="#1f5f3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root { --green:#1f5f3a; --leaf:#2f8f4e; --amber:#b26a00; --amber-bg:#fff4e0; --ink:#1c2420; --muted:#5d6b63; --line:#dde5df; --bg:#f6f8f6; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:var(--green); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:2; }
+  header h1 { font-size:20px; margin:0; flex:1; }
+  header a { color:#fff; font-size:14px; }
+  .pill { font-size:12px; padding:3px 8px; border-radius:99px; background:rgba(255,255,255,.18); }
+  main { max-width:560px; margin:0 auto; padding:16px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .btns { display:flex; gap:10px; }
+  .btn { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; border:0; font-size:16px; font-weight:600; cursor:pointer; }
+  .btn.primary { background:var(--leaf); color:#fff; }
+  .btn.secondary { background:#e9f1eb; color:var(--green); }
+  .btn:disabled { opacity:.5; }
+  input[type=file] { display:none; }
+  #status { color:var(--muted); font-size:14px; margin-top:10px; min-height:20px; }
+  .viewer { position:relative; width:100%; aspect-ratio:1; border-radius:12px; overflow:hidden; background:#e8ece9; }
+  .viewer canvas { position:absolute; inset:0; width:100%; height:100%; }
+  #heat { opacity:.45; transition:opacity .2s; }
+  .toggle { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--muted); margin-top:8px; }
+  .top1 { font-size:22px; font-weight:700; margin:4px 0 2px; }
+  .bar { height:10px; background:#e7ece8; border-radius:99px; overflow:hidden; margin:6px 0 2px; }
+  .bar > div { height:100%; background:var(--leaf); }
+  .alt { display:flex; justify-content:space-between; font-size:15px; padding:8px 0; border-top:1px solid var(--line); }
+  .unsure { background:var(--amber-bg); border:1px solid #f0c77a; color:#6b4200; border-radius:12px; padding:12px; margin-bottom:10px; }
+  .unsure b { color:var(--amber); }
+  .look { background:#f1f6f2; border-radius:10px; padding:10px 12px; font-size:15px; margin-top:10px; }
+  .note { font-size:13px; color:var(--muted); margin-top:10px; }
+  .warn { color:var(--amber); font-size:14px; margin-top:6px; }
+  .fb { display:flex; gap:8px; margin-top:12px; }
+  .fb button { flex:1; padding:10px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:14px; cursor:pointer; }
+  .muted { color:var(--muted); font-size:14px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌿 LeafDoctor</h1>
+  <span class="pill" id="net">…</span>
+  <a href="help.html">Help</a>
+</header>
+<main>
+  <div class="card">
+    <div class="btns">
+      <label class="btn primary" id="camBtn">📷 Take photo<input id="cam" type="file" accept="image/*" capture="environment"></label>
+      <label class="btn secondary">🖼️ Gallery<input id="gal" type="file" accept="image/*"></label>
+    </div>
+    <div id="status">Loading the model…</div>
+    <div class="muted" style="margin-top:6px">Photograph one leaf, filling most of the frame, in daylight. Your photo never leaves this phone.</div>
+  </div>
+
+  <div class="card hidden" id="resultCard">
+    <div class="viewer"><canvas id="photo" width="224" height="224"></canvas><canvas id="heat" width="224" height="224"></canvas></div>
+    <label class="toggle"><input type="checkbox" id="heatToggle" checked> Show heat-map (where the model looked)</label>
+    <div id="quality" class="warn"></div>
+    <div id="result" style="margin-top:12px"></div>
+    <div class="fb" id="fb">
+      <button data-v="confirmed">✅ Expert confirmed</button>
+      <button data-v="wrong">❌ Expert said wrong</button>
+    </div>
+    <div class="note" id="fbNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="muted">LeafDoctor gives an <b>indicative</b> result only. It cannot replace an agronomist. Before you treat a crop or spray anything, contact your local agricultural extension office. It knows 28 leaf conditions on 14 crops (see Help) and nothing else.</div>
+    <div class="note"><a href="#" id="export">Export my expert feedback (CSV)</a> · <span id="ver"></span></div>
+  </div>
+</main>
+<script src="vendor/ort.wasm.min.js"></script>
+<script src="info.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

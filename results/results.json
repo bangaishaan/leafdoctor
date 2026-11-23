@@ -1,0 +1,444 @@
+{
+  "config": {
+    "N_TRAIN": 120,
+    "N_VAL": 20,
+    "N_TEST": 40,
+    "N_SYN": 20,
+    "EPOCHS": 4,
+    "BATCH": 64,
+    "LR": 0.0015,
+    "backbone": "MobileNetV3-Small (ImageNet)",
+    "seed": 42,
+    "target_acc": 0.7
+  },
+  "data": {
+    "plantvillage_train": 3360,
+    "plantvillage_val": 560,
+    "plantvillage_test": 1120,
+    "plantdoc_field_val(train folder)": 2342,
+    "plantdoc_field_test(test folder)": 236,
+    "classes": 28,
+    "field_test_per_class": {
+      "Apple scab": 10,
+      "Apple cedar rust": 10,
+      "Apple (healthy)": 9,
+      "Bell pepper bacterial spot": 9,
+      "Bell pepper (healthy)": 8,
+      "Blueberry (healthy)": 11,
+      "Cherry (healthy)": 10,
+      "Corn gray leaf spot": 4,
+      "Corn northern leaf blight": 12,
+      "Corn common rust": 10,
+      "Grape black rot": 8,
+      "Grape (healthy)": 12,
+      "Peach (healthy)": 9,
+      "Potato early blight": 8,
+      "Potato late blight": 8,
+      "Raspberry (healthy)": 7,
+      "Soybean (healthy)": 8,
+      "Squash powdery mildew": 6,
+      "Strawberry (healthy)": 8,
+      "Tomato bacterial spot": 9,
+      "Tomato early blight": 9,
+      "Tomato late blight": 10,
+      "Tomato leaf mold": 6,
+      "Tomato Septoria leaf spot": 11,
+      "Tomato spider mites": 0,
+      "Tomato mosaic virus": 10,
+      "Tomato yellow leaf curl virus": 6,
+      "Tomato (healthy)": 8
+    }
+  },
+  "baselines": {
+    "B0_hsv_histogram_logreg": {
+      "lab_test": {
+        "acc": 0.8321,
+        "macro_f1": 0.832,
+        "top3_acc": 0.9482,
+        "n": 1120
+      },
+      "field_test": {
+        "acc": 0.0763,
+        "macro_f1": 0.0672,
+        "top3_acc": 0.2161,
+        "n": 236
+      }
+    },
+    "B1_frozen_imagenet_logreg": {
+      "lab_test": {
+        "acc": 0.9536,
+        "macro_f1": 0.9532,
+        "top3_acc": 0.9929,
+        "n": 1120
+      },
+      "field_test": {
+        "acc": 0.2542,
+        "macro_f1": 0.2193,
+        "top3_acc": 0.4746,
+        "n": 236
+      }
+    }
+  },
+  "model_A_lab_only": {
+    "history": [
+      {
+        "epoch": 1,
+        "loss": 2.1831,
+        "lab_val_acc": 0.4768,
+        "field_val_acc": 0.1277
+      },
+      {
+        "epoch": 2,
+        "loss": 1.0102,
+        "lab_val_acc": 0.8143,
+        "field_val_acc": 0.1759
+      },
+      {
+        "epoch": 3,
+        "loss": 0.8447,
+        "lab_val_acc": 0.9232,
+        "field_val_acc": 0.1951
+      },
+      {
+        "epoch": 4,
+        "loss": 0.7964,
+        "lab_val_acc": 0.95,
+        "field_val_acc": 0.2131
+      }
+    ],
+    "lab_test": {
+      "acc": 0.9527,
+      "macro_f1": 0.9516,
+      "top3_acc": 0.9964,
+      "n": 1120
+    },
+    "field_test": {
+      "acc": 0.3178,
+      "macro_f1": 0.2929,
+      "top3_acc": 0.589,
+      "n": 236
+    }
+  },
+  "generative": {
+    "model": "stabilityai/sd-turbo (text-to-image backgrounds + image-to-image harmonisation, strength 0.35)",
+    "n_backgrounds": 64,
+    "n_synthetic": 560,
+    "seconds": 420.1
+  },
+  "model_B_lab_plus_diffusion": {
+    "history": [
+      {
+        "epoch": 1,
+        "loss": 2.2184,
+        "lab_val_acc": 0.5661,
+        "field_val_acc": 0.1806
+      },
+      {
+        "epoch": 2,
+        "loss": 1.0962,
+        "lab_val_acc": 0.7696,
+        "field_val_acc": 0.1866
+      },
+      {
+        "epoch": 3,
+        "loss": 0.9125,
+        "lab_val_acc": 0.9214,
+        "field_val_acc": 0.2464
+      },
+      {
+        "epoch": 4,
+        "loss": 0.8263,
+        "lab_val_acc": 0.9643,
+        "field_val_acc": 0.266
+      }
+    ],
+    "lab_test": {
+      "acc": 0.9661,
+      "macro_f1": 0.9659,
+      "top3_acc": 0.9955,
+      "n": 1120
+    },
+    "field_test": {
+      "acc": 0.2797,
+      "macro_f1": 0.2411,
+      "top3_acc": 0.589,
+      "n": 236
+    }
+  },
+  "deployed_model": {
+    "choice": "B",
+    "field_val_acc_A": 0.2131,
+    "field_val_acc_B": 0.266
+  },
+  "calibration": {
+    "temperature": 1.3381,
+    "ece_field_test_before": 0.1597,
+    "ece_field_test_after": 0.0571,
+    "ece_lab_test_after": 0.3378
+  },
+  "rejection": {
+    "threshold": 0.242,
+    "target_acc_on_accepted(field_val)": 0.7,
+    "field_test_share_unsure": 0.4364,
+    "field_test_acc_on_accepted": 0.3985,
+    "field_test_acc_all": 0.2797
+  },
+  "top_confusions_field": [
+    {
+      "true": "Corn northern leaf blight",
+      "pred": "Corn gray leaf spot",
+      "count": 7
+    },
+    {
+      "true": "Tomato Septoria leaf spot",
+      "pred": "Grape black rot",
+      "count": 5
+    },
+    {
+      "true": "Potato late blight",
+      "pred": "Tomato late blight",
+      "count": 5
+    },
+    {
+      "true": "Apple cedar rust",
+      "pred": "Grape black rot",
+      "count": 5
+    },
+    {
+      "true": "Strawberry (healthy)",
+      "pred": "Raspberry (healthy)",
+      "count": 4
+    },
+    {
+      "true": "Soybean (healthy)",
+      "pred": "Blueberry (healthy)",
+      "count": 4
+    },
+    {
+      "true": "Bell pepper bacterial spot",
+      "pred": "Grape black rot",
+      "count": 4
+    },
+    {
+      "true": "Tomato late blight",
+      "pred": "Potato late blight",
+      "count": 3
+    }
+  ],
+  "per_crop_field": {
+    "Apple": {
+      "n": 29,
+      "acc": 0.138,
+      "unsure_share": 0.655
+    },
+    "Bell pepper": {
+      "n": 17,
+      "acc": 0.294,
+      "unsure_share": 0.412
+    },
+    "Blueberry": {
+      "n": 11,
+      "acc": 0.273,
+      "unsure_share": 0.636
+    },
+    "Cherry": {
+      "n": 10,
+      "acc": 0.1,
+      "unsure_share": 0.6
+    },
+    "Corn": {
+      "n": 26,
+      "acc": 0.385,
+      "unsure_share": 0.077
+    },
+    "Grape": {
+      "n": 20,
+      "acc": 0.8,
+      "unsure_share": 0.3
+    },
+    "Peach": {
+      "n": 9,
+      "acc": 0.222,
+      "unsure_share": 0.444
+    },
+    "Potato": {
+      "n": 16,
+      "acc": 0.062,
+      "unsure_share": 0.25
+    },
+    "Raspberry": {
+      "n": 7,
+      "acc": 0.857,
+      "unsure_share": 0.0
+    },
+    "Soybean": {
+      "n": 8,
+      "acc": 0.0,
+      "unsure_share": 0.875
+    },
+    "Squash": {
+      "n": 6,
+      "acc": 0.5,
+      "unsure_share": 0.167
+    },
+    "Strawberry": {
+      "n": 8,
+      "acc": 0.0,
+      "unsure_share": 0.75
+    },
+    "Tomato": {
+      "n": 69,
+      "acc": 0.217,
+      "unsure_share": 0.493
+    }
+  },
+  "per_class_lab_vs_field": {
+    "Apple scab": {
+      "lab_acc": 0.95,
+      "field_acc": 0.1
+    },
+    "Apple cedar rust": {
+      "lab_acc": 1.0,
+      "field_acc": 0.2
+    },
+    "Apple (healthy)": {
+      "lab_acc": 0.975,
+      "field_acc": 0.111
+    },
+    "Bell pepper bacterial spot": {
+      "lab_acc": 0.975,
+      "field_acc": 0.0
+    },
+    "Bell pepper (healthy)": {
+      "lab_acc": 0.975,
+      "field_acc": 0.625
+    },
+    "Blueberry (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.273
+    },
+    "Cherry (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.1
+    },
+    "Corn gray leaf spot": {
+      "lab_acc": 0.9,
+      "field_acc": 0.25
+    },
+    "Corn northern leaf blight": {
+      "lab_acc": 0.9,
+      "field_acc": 0.333
+    },
+    "Corn common rust": {
+      "lab_acc": 1.0,
+      "field_acc": 0.5
+    },
+    "Grape black rot": {
+      "lab_acc": 1.0,
+      "field_acc": 0.875
+    },
+    "Grape (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.75
+    },
+    "Peach (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.222
+    },
+    "Potato early blight": {
+      "lab_acc": 1.0,
+      "field_acc": 0.0
+    },
+    "Potato late blight": {
+      "lab_acc": 0.95,
+      "field_acc": 0.125
+    },
+    "Raspberry (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.857
+    },
+    "Soybean (healthy)": {
+      "lab_acc": 0.95,
+      "field_acc": 0.0
+    },
+    "Squash powdery mildew": {
+      "lab_acc": 0.975,
+      "field_acc": 0.5
+    },
+    "Strawberry (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.0
+    },
+    "Tomato bacterial spot": {
+      "lab_acc": 0.925,
+      "field_acc": 0.0
+    },
+    "Tomato early blight": {
+      "lab_acc": 0.85,
+      "field_acc": 0.667
+    },
+    "Tomato late blight": {
+      "lab_acc": 0.95,
+      "field_acc": 0.3
+    },
+    "Tomato leaf mold": {
+      "lab_acc": 0.925,
+      "field_acc": 0.167
+    },
+    "Tomato Septoria leaf spot": {
+      "lab_acc": 0.875,
+      "field_acc": 0.273
+    },
+    "Tomato spider mites": {
+      "lab_acc": 0.975,
+      "field_acc": null
+    },
+    "Tomato mosaic virus": {
+      "lab_acc": 1.0,
+      "field_acc": 0.0
+    },
+    "Tomato yellow leaf curl virus": {
+      "lab_acc": 1.0,
+      "field_acc": 0.167
+    },
+    "Tomato (healthy)": {
+      "lab_acc": 1.0,
+      "field_acc": 0.125
+    }
+  },
+  "export": {
+    "fp32": {
+      "size_MB": 6.2,
+      "field_test": {
+        "acc": 0.2797,
+        "macro_f1": 0.2411,
+        "top3_acc": 0.589,
+        "n": 236
+      },
+      "lab_test": {
+        "acc": 0.967,
+        "macro_f1": 0.9667,
+        "top3_acc": 0.9955,
+        "n": 1120
+      },
+      "cpu_1thread_ms": 3.1
+    },
+    "int8": {
+      "size_MB": 3.72,
+      "field_test": {
+        "acc": 0.0593,
+        "macro_f1": 0.0135,
+        "top3_acc": 0.1271,
+        "n": 236
+      },
+      "lab_test": {
+        "acc": 0.0321,
+        "macro_f1": 0.0095,
+        "top3_acc": 0.1268,
+        "n": 1120
+      },
+      "cpu_1thread_ms": 6.0
+    },
+    "deployed_variant": "fp32"
+  }
+}
